@@ -1,137 +1,96 @@
 # Gerador de Dados Fake com Preservação de CPF
 
-Script em Python que gera versões fake de arquivos CSV, preservando automaticamente colunas que contêm CPF (independente do nome da coluna).
+Este projeto gera versões fake de arquivos CSV, mas mantém os CPFs originais intactos. Útil quando você precisa compartilhar dados para testes sem expor informações sensíveis.
 
----
+## Requisitos
 
-## 📦 Pré-requisitos
+- Python 3.8 ou superior
+- Bibliotecas: pandas e numpy
 
-- Python 3.8+
-- Instalar dependência:
+## Como usar
+
+### 1. Clone o repositório e configure o ambiente
 
 ```bash
+git clone https://github.com/LuisHenriqueCompass/preservar_cpf_tabelas.git
+cd preservar_cpf_tabelas
+
+# Recomendo criar um ambiente virtual
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
+
+# Instale as dependências
 pip install pandas numpy
 ```
 
----
+### 2. Organize seus arquivos
 
-## 📁 Estrutura do Projeto
+Coloque os CSVs que você quer processar na pasta `dados/original/`. Se quiser testar antes, rode o script de exemplo:
+
+```bash
+python gerar_tabelas.py
+```
+
+### 3. Execute o script principal
+
+```bash
+python gerar_fakes.py dados/original
+```
+
+Os arquivos processados vão aparecer em `dados/fake/` com o sufixo `_fake.csv`.
+
+## O que ele faz
+
+O script lê cada CSV e tenta identificar quais colunas contêm CPF. Quando encontra:
+
+- Mantém os CPFs intactos
+- Substitui os outros dados por informações fake (nomes, emails, etc)
+- Salva tudo num novo arquivo
+
+Se não encontrar CPF em nenhuma coluna, o arquivo é ignorado.
+
+## Exemplo prático
+
+**Antes** (`clientes.csv`):
+```csv
+id,nome,cpf,email
+1,João Silva,52998224725,joao.silva@empresa.com
+2,Maria Santos,12345678901,maria.santos@empresa.com
+```
+
+**Depois** (`clientes_fake.csv`):
+```csv
+id,nome,cpf,email
+1,Carlos Oliveira,52998224725,user432@gmail.com
+2,Ana Costa,12345678901,user891@gmail.com
+```
+
+Os CPFs continuam os mesmos. O resto foi substituído.
+
+## Configurações
+
+Se quiser ajustar a detecção de CPF, edite o arquivo `validar_cpf.py`:
+
+```python
+AMOSTRA = 100      # Quantas linhas analisar por arquivo
+CONFIANCA = 0.7    # Porcentagem mínima para considerar uma coluna como CPF
+```
+
+## Limitações
+
+O script só processa arquivos que têm pelo menos uma coluna com CPF válido. Isso acontece porque ele foi desenvolvido especificamente para preservar CPFs como identificador principal dos registros.
+
+Se você tem CSVs sem CPF e quer gerar versões fake mesmo assim, vai precisar adaptar a lógica do `gerar_fakes.py` para definir qual coluna deve ser preservada como chave.
+
+## Estrutura do projeto
 
 ```
 projeto/
-├── validar_cpf.py
-├── gerar_fakes.py
-├── gerar_tabelas.py
+├── validar_cpf.py      # Detecta colunas com CPF
+├── gerar_fakes.py      # Script principal
+├── gerar_tabelas.py    # Gera CSVs de exemplo
 └── dados/
-    ├── original/    # Coloque aqui os CSVs originais ou utilize o script "gerar_tabelas.py"
-    └── fake/        # Criada automaticamente com os arquivos _fake.csv
-```
-
----
-
-## 🚀 Fluxo Completo
-
-### 1️⃣ Colocar os arquivos
-
-Coloque todos os arquivos `.csv` que deseja processar dentro da pasta:
-
-```
-dados/original
-```
-
----
-
-### 2️⃣ Executar o script
-
-No terminal, dentro da pasta do projeto:
-
-```bash
-python gerar_fakes.py dados/original
-```
-
----
-
-### 3️⃣ Resultado
-
-- ✅ Arquivos que possuem CPF → geram versão `_fake.csv` na pasta `fake/`
-- ⏭️ Arquivos sem CPF → são ignorados automaticamente
-- 📂 A pasta `fake/` é criada automaticamente se não existir
-
----
-
-## 🔎 Como funciona
-
-1. O script analisa as colunas do CSV.
-2. Detecta automaticamente se alguma coluna contém CPF válido.
-3. Se encontrar:
-    - Preserva os CPFs.
-    - Gera dados fake para todas as outras colunas.
-4. Salva o novo arquivo em dados/fake com sufixo `_fake.csv`.
-
----
-
-## ⚠️ Importante
-
-Arquivos que não possuem coluna detectada como CPF não são processados.
-
-Isso ocorre porque a lógica atual foi construída com foco na preservação de CPF como identificador principal.
-Como não foi definida uma regra clara sobre qual coluna deveria ser preservada em tabelas sem CPF, o script opta por não gerar versão fake nesses casos, evitando risco de mascaramento incorreto ou perda de integridade lógica da tabela.
-
----
-
-## ⚙️ Configuração
-
-No arquivo `validar_cpf.py` você pode ajustar:
-
-```python
-AMOSTRA=100    # Quantidade de linhas analisadas por tabela
-CONFIANCA=0.7  # Percentual mínimo para considerar coluna como CPF
-```
-
----
-
-## 📌 Exemplo
-
-### Arquivo original (`dados/original/clientes.csv`)
-
-```csv
-id,nome,cpf,email
-1,João,52998224725,joao@email.com
-```
-
-### Arquivo gerado (`dados/fake/clientes_fake.csv`)
-
-```csv
-id,nome,cpf,email
-1,Ana Souza,52998224725,user847@gmail.com
-```
-
-✔ CPF preservado
-
-✔ Demais colunas fakeadas
-
----
-
-## 📋 Regras do Sistema
-
-- Preserva apenas colunas identificadas como CPF.
-- Não depende do nome da coluna.
-- Diferencia CPF de telefone automaticamente.
-- Funciona para múltiplos arquivos na mesma execução.
-
----
-
-## 🧹 Resumo do Processo
-
-```
-CSV original → Detecta CPF → Fakeia dados → Salva versão _fake
-```
-
----
-
-## 📬 Execução Rápida
-
-```bash
-pip install pandas numpy
-python gerar_fakes.py dados/original
+    ├── original/       # Seus arquivos CSV vão aqui
+    └── fake/           # Arquivos processados aparecem aqui
 ```
